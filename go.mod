@@ -4,7 +4,7 @@ go 1.22.0
 
 require (
 	github.com/labstack/echo/v4 v4.12.0
-	github.com/ross96D/battle-log-parser v0.0.3
+	github.com/ross96D/battle-log-parser v0.0.4
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.8.4
 	github.com/tursodatabase/libsql-client-go v0.0.0-20240812094001-348a4e45b535
@@ -27,5 +27,3 @@ require (
 	golang.org/x/text v0.16.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/ross96D/battle-log-parser v0.0.3 => ../battle-log-parser
