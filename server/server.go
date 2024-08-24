@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -18,6 +19,35 @@ import (
 	"github.com/ross96D/cw_participation_bot/tg"
 	"github.com/rs/zerolog/log"
 )
+
+func Run(telegramTokenValue, serviceUrl string, poolling bool, port int) {
+	if poolling {
+		polling{telegramApiToken: telegramTokenValue, serviceUrl: serviceUrl}.runPolling()
+	} else {
+		runServer(telegramTokenValue, serviceUrl, port)
+	}
+}
+
+func runServer(telegramTokenValue, serviceUrl string, port int) {
+	s := Server(telegramTokenValue, serviceUrl)
+	log.Debug().Msg("initializing server")
+
+	cert, err := tls.LoadX509KeyPair("ca.crt", "ca.key")
+	if err != nil {
+		log.Panic().Err(err).Msg("loading tls cert")
+	}
+	config := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+	}
+	server := http.Server{
+		Addr:      ":" + strconv.FormatInt(int64(port), 10),
+		Handler:   s,
+		TLSConfig: config,
+	}
+	if err := server.ListenAndServeTLS("", ""); err != nil {
+		log.Error().Err(err).Send()
+	}
+}
 
 func GetCommand(text string) (cmd string, ok bool) {
 	if text == "" {

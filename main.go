@@ -1,11 +1,9 @@
 package main
 
 import (
-	"crypto/tls"
 	"fmt"
-	"net/http"
 	"os"
-	"strconv"
+	"time"
 
 	"flag"
 
@@ -76,6 +74,7 @@ func main() {
 	}
 
 	log.Logger = log.Output(zerolog.NewConsoleWriter())
+	zerolog.DurationFieldUnit = time.Second
 
 	if flag.Arg(0) == "cli" {
 		if cliWebviewUrl == "" {
@@ -95,22 +94,5 @@ func main() {
 		panic(err)
 	}
 
-	s := server.Server(serviceUrl, telegramTokenValue)
-	log.Debug().Msg("initializing server")
-
-	cert, err := tls.LoadX509KeyPair("ca.crt", "ca.key")
-	if err != nil {
-		log.Panic().Err(err).Msg("loading tls cert")
-	}
-	config := &tls.Config{
-		Certificates: []tls.Certificate{cert},
-	}
-	server := http.Server{
-		Addr:      ":" + strconv.FormatInt(int64(port), 10),
-		Handler:   s,
-		TLSConfig: config,
-	}
-	if err := server.ListenAndServeTLS("", ""); err != nil {
-		log.Error().Err(err).Send()
-	}
+	server.Run(telegramTokenValue, serviceUrl, true, int(port))
 }

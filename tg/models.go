@@ -14,9 +14,9 @@ type Message struct {
 }
 
 type Update struct {
+	ID       int64         `json:"update_id,omitempty"`
 	Message  Message       `json:"message,omitempty"`
 	CallBack CallBackQuery `json:"callback_query,omitempty"`
-	ID       int64         `json:"update_id,omitempty"`
 }
 
 type User struct {

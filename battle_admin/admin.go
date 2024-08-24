@@ -48,6 +48,7 @@ func AddBattleToGroup(ctx context.Context, battle parser.Battle, chatID int64) e
 	}
 	if err = addBattleToGroup(ctx, tx, battle, chatID); err != nil {
 		_ = tx.Rollback()
+		return err
 	}
 
 	return tx.Commit()
@@ -95,11 +96,9 @@ func AddBattle(ctx context.Context, battle parser.Battle) error {
 	_, err = addBattle(ctx, tx, battle)
 	if err != nil {
 		_ = tx.Rollback()
-	} else {
-		_ = tx.Commit()
+		return err
 	}
-
-	return nil
+	return tx.Commit()
 }
 
 func addBattle(ctx context.Context, conn db.DBTX, battle parser.Battle) (int64, error) {
@@ -154,7 +153,6 @@ func insertBattle(ctx context.Context, conn db.DBTX, battle parser.Battle) (id i
 		if err != nil {
 			log.Error().Err(err).Send()
 		}
-		fmt.Printf("%+v\n", dd)
 	}
 
 	return
