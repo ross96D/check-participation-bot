@@ -20,7 +20,7 @@ jobs:
         run: go build -o out/bin/chwarbot .
 
       - name: Deploy
-        uses: ross96D/updater-upload-action@latest
+        uses: ross96D/updater-upload-action@v0.0.1
         with:
           urls: http://${{ secrets.DEPLOY_TOKEN }}@${{ secrets.DEPLOY_IP_PORT }}/update
           fields: chwarbot=@out/bin/chwarbot
