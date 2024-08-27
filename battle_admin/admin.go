@@ -131,7 +131,7 @@ func addBattle(ctx context.Context, conn db.DBTX, battle parser.Battle) (int64, 
 func insertPlayers(ctx context.Context, conn db.DBTX, battle parser.Battle) (ids []int64, err error) {
 	players := GetPlayers(battle)
 	for _, player := range players {
-		err = db.New(conn).InsertIfNotExists(ctx, db.InsertIfNotExistsParams{
+		err = db.New(conn).InsertPlayerIfNotExists(ctx, db.InsertPlayerIfNotExistsParams{
 			Name: player.Name,
 			Team: player.Team.String(),
 		})

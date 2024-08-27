@@ -4,8 +4,8 @@ SELECT * FROM player;
 -- name: GetIDByName :one
 SELECT id FROM player WHERE name=?;
 
--- name: InsertIfNotExists :exec
-INSERT OR REPLACE INTO player (name, team) 
+-- name: InsertPlayerIfNotExists :exec
+INSERT OR IGNORE INTO player (name, team) 
     VALUES (?, ?);
 
 -- name: CountBattlesFromPlayerAndGroup :one

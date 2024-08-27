@@ -77,17 +77,17 @@ func (q *Queries) GetIDByName(ctx context.Context, name string) (int64, error) {
 	return id, err
 }
 
-const insertIfNotExists = `-- name: InsertIfNotExists :exec
-INSERT OR REPLACE INTO player (name, team) 
+const insertPlayerIfNotExists = `-- name: InsertPlayerIfNotExists :exec
+INSERT OR IGNORE INTO player (name, team) 
     VALUES (?, ?)
 `
 
-type InsertIfNotExistsParams struct {
+type InsertPlayerIfNotExistsParams struct {
 	Name string
 	Team string
 }
 
-func (q *Queries) InsertIfNotExists(ctx context.Context, arg InsertIfNotExistsParams) error {
-	_, err := q.db.ExecContext(ctx, insertIfNotExists, arg.Name, arg.Team)
+func (q *Queries) InsertPlayerIfNotExists(ctx context.Context, arg InsertPlayerIfNotExistsParams) error {
+	_, err := q.db.ExecContext(ctx, insertPlayerIfNotExists, arg.Name, arg.Team)
 	return err
 }
