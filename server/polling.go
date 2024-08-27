@@ -3,9 +3,7 @@ package server
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -95,14 +93,6 @@ func (p polling) handle(update tg.Update) (bool, error) {
 		battle, err := GetBattle(webViewUrl, p.serviceUrl)
 		if err != nil {
 			return true, err
-		}
-
-		ok, err := battleadmin.CheckGroup(context.Background(), update.Message.Chat.ID)
-		if err != nil {
-			return true, err
-		}
-		if !ok {
-			return true, errors.New("CheckGroup false " + strconv.FormatInt(update.Message.Chat.ID, 10))
 		}
 
 		err = battleadmin.AddBattleToGroup(context.Background(), battle, update.Message.Chat.ID)
