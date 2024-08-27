@@ -192,14 +192,28 @@ func Parse(webviewUrl string, serviceUrl string) ([]PlayerResume, error) {
 }
 
 func SendPlayerResumeTg(telegramTokenValue string, chatID int64, playersResume []PlayerResume) {
-	err := tg.New(telegramTokenValue).SendMessage(tg.SendMessage{
-		Text:      "```\n" + AllPlayerResume(playersResume).String() + "```",
-		ChatID:    chatID,
-		ParseMode: "MarkdownV2",
-	})
-	if err != nil {
-		log.Error().Err(err).Msgf("Send player resume %d", chatID)
+	lines := strings.Split(AllPlayerResume(playersResume).String(), "\n")
+
+	for i := 0; i < len(lines); i++ {
+		end := i + 80
+		if len(lines)-1 < end {
+			end = len(lines) - 1
+		}
+		toSend := strings.Join(lines[i:end], "\n")
+
+		i = end
+
+		err := tg.New(telegramTokenValue).SendMessage(tg.SendMessage{
+			Text:      "```" + toSend + "```",
+			ChatID:    chatID,
+			ParseMode: "MarkdownV2",
+		})
+		if err != nil {
+			log.Error().Err(err).Msgf("Send player resume %d", chatID)
+			break
+		}
 	}
+
 }
 
 func GetBattle(webviewUrl string, serviceUrl string) (parser.Battle, error) {

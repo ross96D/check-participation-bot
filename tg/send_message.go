@@ -82,6 +82,66 @@ func New(apiToken string) TelegramSender {
 }
 
 func (tg Tg) SendMessage(sm SendMessage) error {
+	if sm.ParseMode == "MarkdownV2" {
+		return tg.sendMessageMarkdown(sm)
+	} else {
+		return tg.sendMessageText(sm)
+	}
+}
+
+// TODO make this more general
+func (tg Tg) sendMessageMarkdown(sm SendMessage) error {
+	v, ok := tg.chats.Load(sm.ChatID)
+	if !ok {
+		v = chat{ID: sm.ChatID, mut: &sync.Mutex{}, apiToken: tg.apiToken}
+		tg.chats.Store(sm.ChatID, v)
+	}
+
+	err := call(v.(chat).sendMessage, sm)
+	if err != nil {
+		return err
+	}
+
+	// for _, rune := range sm.Text {
+	// 	if len(toSend) > 4080 {
+	// 		newSm := sm
+	// 		newSm.Text = string(toSend) + "```"
+	// 		if count > 0 {
+	// 			newSm.Text = "```" + string(toSend)
+	// 		}
+	// 		err := call(v.(chat).sendMessage, newSm)
+	// 		if err != nil {
+	// 			return err
+	// 		}
+
+	// 		toSend = []byte{}
+	// 		count++
+	// 	}
+	// 	toSend = utf8.AppendRune(toSend, rune)
+	// }
+	// for i := 0; i < len(sm.Text); {
+	// 	newSm := sm
+	// 	start := i
+	// 	end := i + 4080
+	// 	if len(sm.Text) < end {
+	// 		end = len(sm.Text)
+	// 	}
+	// 	newSm.Text = sm.Text[start:end] + "```"
+	// 	if i != 0 {
+	// 		newSm.Text = "```" + sm.Text
+	// 	}
+	// 	lenss := len(newSm.Text)
+	// 	_ = lenss
+	// 	err := call(v.(chat).sendMessage, newSm)
+	// 	if err != nil {
+	// 		return fmt.Errorf("telegramSendMessage %s %w", newSm.Text, err)
+	// 	}
+	// 	i += 4080
+	// }
+	return nil
+}
+
+func (tg Tg) sendMessageText(sm SendMessage) error {
 	v, ok := tg.chats.Load(sm.ChatID)
 	if !ok {
 		v = chat{ID: sm.ChatID, mut: &sync.Mutex{}, apiToken: tg.apiToken}
