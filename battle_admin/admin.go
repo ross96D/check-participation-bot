@@ -136,6 +136,7 @@ func insertPlayers(ctx context.Context, conn db.DBTX, battle parser.Battle) (ids
 			Team: player.Team.String(),
 		})
 		if err != nil {
+			log.Error().Msgf("InsertIfNotExists name %s team %s err %s", player.Name, player.Team.String(), err.Error())
 			return
 		}
 	}
