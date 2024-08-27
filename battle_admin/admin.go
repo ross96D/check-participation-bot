@@ -67,7 +67,11 @@ func groupByChatID(ctx context.Context, conn db.DBTX, chatID int64) (int64, erro
 }
 
 func insertGroup(ctx context.Context, conn db.DBTX, chatID int64) (int64, error) {
-	return db.New(conn).InsertGroup(ctx, chatID)
+	err := db.New(conn).InsertGroup(ctx, chatID)
+	if err != nil {
+		return 0, err
+	}
+	return groupByChatID(ctx, conn, chatID)
 }
 
 func addBattleToGroup(ctx context.Context, conn db.DBTX, battle parser.Battle, chatID int64) error {
@@ -125,17 +129,39 @@ func addBattle(ctx context.Context, conn db.DBTX, battle parser.Battle) (int64, 
 }
 
 func insertPlayers(ctx context.Context, conn db.DBTX, battle parser.Battle) (ids []int64, err error) {
-	ids = make([]int64, 0)
-	for _, player := range GetPlayers(battle) {
-		var id int64
-		id, err = db.New(conn).InsertIfNotExists(ctx, db.InsertIfNotExistsParams{
+	players := GetPlayers(battle)
+	for _, player := range players {
+		err = db.New(conn).InsertIfNotExists(ctx, db.InsertIfNotExistsParams{
 			Name: player.Name,
 			Team: player.Team.String(),
 		})
 		if err != nil {
 			return
 		}
-		ids = append(ids, id)
+	}
+	dbPLayers, err := db.New(conn).GetAllPlayer(ctx)
+	if err != nil {
+		return
+	}
+	cmp := func(a, b db.Player) int {
+		if a.Name == b.Name {
+			return 0
+		}
+		if a.Name < b.Name {
+			return -1
+		}
+		return 1
+	}
+	ids = make([]int64, 0, len(players))
+	slices.SortFunc(dbPLayers, cmp)
+	for _, v := range players {
+		player := db.Player{
+			Name: v.Name,
+		}
+		index, ok := slices.BinarySearchFunc(dbPLayers, player, cmp)
+		if ok {
+			ids = append(ids, dbPLayers[index].ID)
+		}
 	}
 	return
 }

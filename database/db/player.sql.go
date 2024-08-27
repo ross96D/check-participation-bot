@@ -39,41 +39,12 @@ func (q *Queries) CountBattlesFromPlayerAndGroup(ctx context.Context, arg CountB
 	return count, err
 }
 
-const getIDByName = `-- name: GetIDByName :one
-SELECT id FROM player WHERE name=?
-`
-
-func (q *Queries) GetIDByName(ctx context.Context, name string) (int64, error) {
-	row := q.db.QueryRowContext(ctx, getIDByName, name)
-	var id int64
-	err := row.Scan(&id)
-	return id, err
-}
-
-const insertIfNotExists = `-- name: InsertIfNotExists :one
-INSERT OR REPLACE INTO player (name, team) 
-    VALUES (?, ?)
-    RETURNING id
-`
-
-type InsertIfNotExistsParams struct {
-	Name string
-	Team string
-}
-
-func (q *Queries) InsertIfNotExists(ctx context.Context, arg InsertIfNotExistsParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, insertIfNotExists, arg.Name, arg.Team)
-	var id int64
-	err := row.Scan(&id)
-	return id, err
-}
-
-const selectAll = `-- name: SelectAll :many
+const getAllPlayer = `-- name: GetAllPlayer :many
 SELECT id, name, team FROM player
 `
 
-func (q *Queries) SelectAll(ctx context.Context) ([]Player, error) {
-	rows, err := q.db.QueryContext(ctx, selectAll)
+func (q *Queries) GetAllPlayer(ctx context.Context) ([]Player, error) {
+	rows, err := q.db.QueryContext(ctx, getAllPlayer)
 	if err != nil {
 		return nil, err
 	}
@@ -93,4 +64,30 @@ func (q *Queries) SelectAll(ctx context.Context) ([]Player, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const getIDByName = `-- name: GetIDByName :one
+SELECT id FROM player WHERE name=?
+`
+
+func (q *Queries) GetIDByName(ctx context.Context, name string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getIDByName, name)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const insertIfNotExists = `-- name: InsertIfNotExists :exec
+INSERT OR REPLACE INTO player (name, team) 
+    VALUES (?, ?)
+`
+
+type InsertIfNotExistsParams struct {
+	Name string
+	Team string
+}
+
+func (q *Queries) InsertIfNotExists(ctx context.Context, arg InsertIfNotExistsParams) error {
+	_, err := q.db.ExecContext(ctx, insertIfNotExists, arg.Name, arg.Team)
+	return err
 }

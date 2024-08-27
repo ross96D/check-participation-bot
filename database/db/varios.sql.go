@@ -9,6 +9,33 @@ import (
 	"context"
 )
 
+const getAllGroups = `-- name: GetAllGroups :many
+SELECT id FROM grupo
+`
+
+func (q *Queries) GetAllGroups(ctx context.Context) ([]int64, error) {
+	rows, err := q.db.QueryContext(ctx, getAllGroups)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const groupByChatID = `-- name: GroupByChatID :one
 SELECT id, chat_id FROM grupo WHERE chat_id = ?
 `
@@ -20,15 +47,14 @@ func (q *Queries) GroupByChatID(ctx context.Context, chatID int64) (Grupo, error
 	return i, err
 }
 
-const insertGroup = `-- name: InsertGroup :one
-INSERT OR REPLACE INTO grupo (chat_id) VALUES (?) RETURNING id
+const insertGroup = `-- name: InsertGroup :exec
+INSERT OR IGNORE INTO grupo (chat_id) 
+    VALUES (?)
 `
 
-func (q *Queries) InsertGroup(ctx context.Context, chatID int64) (int64, error) {
-	row := q.db.QueryRowContext(ctx, insertGroup, chatID)
-	var id int64
-	err := row.Scan(&id)
-	return id, err
+func (q *Queries) InsertGroup(ctx context.Context, chatID int64) error {
+	_, err := q.db.ExecContext(ctx, insertGroup, chatID)
+	return err
 }
 
 const insertGroupBattle = `-- name: InsertGroupBattle :exec

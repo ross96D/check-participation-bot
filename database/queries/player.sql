@@ -1,13 +1,12 @@
--- name: SelectAll :many
+-- name: GetAllPlayer :many
 SELECT * FROM player;
 
 -- name: GetIDByName :one
 SELECT id FROM player WHERE name=?;
 
--- name: InsertIfNotExists :one
+-- name: InsertIfNotExists :exec
 INSERT OR REPLACE INTO player (name, team) 
-    VALUES (?, ?)
-    RETURNING id;
+    VALUES (?, ?);
 
 -- name: CountBattlesFromPlayerAndGroup :one
 SELECT count(pb.battle_log_id) FROM grupo_battle AS gb 
