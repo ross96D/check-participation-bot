@@ -6,3 +6,6 @@ INSERT INTO grupo_battle (grupo_id, battle_log_id) VALUES (?, ?);
 
 -- name: GroupByChatID :one
 SELECT * FROM grupo WHERE chat_id = ?;
+
+-- name: InsertGroup :one
+INSERT OR REPLACE INTO grupo (chat_id) VALUES (?) RETURNING id;

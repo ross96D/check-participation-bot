@@ -20,6 +20,17 @@ func (q *Queries) GroupByChatID(ctx context.Context, chatID int64) (Grupo, error
 	return i, err
 }
 
+const insertGroup = `-- name: InsertGroup :one
+INSERT OR REPLACE INTO grupo (chat_id) VALUES (?) RETURNING id
+`
+
+func (q *Queries) InsertGroup(ctx context.Context, chatID int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, insertGroup, chatID)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
 const insertGroupBattle = `-- name: InsertGroupBattle :exec
 INSERT INTO grupo_battle (grupo_id, battle_log_id) VALUES (?, ?)
 `

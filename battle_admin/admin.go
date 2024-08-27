@@ -66,15 +66,19 @@ func groupByChatID(ctx context.Context, conn db.DBTX, chatID int64) (int64, erro
 	return group.ID, nil
 }
 
+func insertGroup(ctx context.Context, conn db.DBTX, chatID int64) (int64, error) {
+	return db.New(conn).InsertGroup(ctx, chatID)
+}
+
 func addBattleToGroup(ctx context.Context, conn db.DBTX, battle parser.Battle, chatID int64) error {
 	battleID, err := addBattle(ctx, conn, battle)
 	if err != nil {
 		return err
 	}
 
-	groupID, err := groupByChatID(ctx, conn, chatID)
+	groupID, err := insertGroup(ctx, conn, chatID)
 	if err != nil {
-		return fmt.Errorf("Add BattleGroup GroupByChatID %w", err)
+		return fmt.Errorf("Add BattleGroup insertGroup %w", err)
 	}
 
 	err = db.New(conn).InsertGroupBattle(ctx, db.InsertGroupBattleParams{
