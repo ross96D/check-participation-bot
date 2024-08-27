@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -99,14 +98,6 @@ func Server(serviceUrl, telegramTokenValue string) *echo.Echo {
 			battle, err := GetBattle(webViewUrl, serviceUrl)
 			if err != nil {
 				return err
-			}
-
-			ok, err := battleadmin.CheckGroup(context.Background(), update.Message.Chat.ID)
-			if err != nil {
-				return err
-			}
-			if !ok {
-				return errors.New("CheckGroup false " + strconv.FormatInt(update.Message.Chat.ID, 10))
 			}
 
 			err = battleadmin.AddBattleToGroup(context.Background(), battle, update.Message.Chat.ID)

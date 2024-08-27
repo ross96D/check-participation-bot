@@ -57,7 +57,10 @@ func (p polling) runPolling() {
 
 func (p polling) handleUpdate(u tg.Update) {
 	start := time.Now()
-	err := p.handle(u)
+	ok, err := p.handle(u)
+	if !ok {
+		return
+	}
 	var logger *zerolog.Event
 	if err != nil {
 		logger = log.Error()
@@ -69,10 +72,10 @@ func (p polling) handleUpdate(u tg.Update) {
 	logger.Send()
 }
 
-func (p polling) handle(update tg.Update) error {
+func (p polling) handle(update tg.Update) (bool, error) {
 	cmd, ok := GetCommand(update.Message.Text)
 	if !ok {
-		return nil
+		return false, nil
 	}
 	switch cmd {
 	case "/resumeByPlayer":
@@ -80,41 +83,41 @@ func (p polling) handle(update tg.Update) error {
 		webViewUrl = strings.TrimSpace(webViewUrl)
 		pr, err := Parse(webViewUrl, p.serviceUrl)
 		if err != nil {
-			return err
+			return true, err
 		}
 		SendPlayerResumeTg(p.telegramApiToken, update.Message.Chat.ID, pr)
 
-		return nil
+		return true, nil
 
 	case "upload", "/u":
 		webViewUrl, _ := strings.CutPrefix(update.Message.Text, cmd)
 		webViewUrl = strings.TrimSpace(webViewUrl)
 		battle, err := GetBattle(webViewUrl, p.serviceUrl)
 		if err != nil {
-			return err
+			return true, err
 		}
 
 		ok, err := battleadmin.CheckGroup(context.Background(), update.Message.Chat.ID)
 		if err != nil {
-			return err
+			return true, err
 		}
 		if !ok {
-			return errors.New("CheckGroup false " + strconv.FormatInt(update.Message.Chat.ID, 10))
+			return true, errors.New("CheckGroup false " + strconv.FormatInt(update.Message.Chat.ID, 10))
 		}
 
 		err = battleadmin.AddBattleToGroup(context.Background(), battle, update.Message.Chat.ID)
 		if err != nil {
-			return err
+			return true, err
 		}
 		err = tg.New(p.telegramApiToken).SendMessage(tg.SendMessage{
 			Text:   "succesfully added " + webViewUrl,
 			ChatID: update.Message.Chat.ID,
 		})
 		if err != nil {
-			return err
+			return true, err
 		}
 
-		return nil
+		return true, nil
 
 	case "/playerParticipation", "/pp":
 		playerName, _ := strings.CutPrefix(update.Message.Text, cmd)
@@ -123,25 +126,25 @@ func (p polling) handle(update tg.Update) error {
 		playerID, err := battleadmin.GetPlayerIDByName(context.Background(), playerName)
 		if err != nil {
 			if err == sql.ErrNoRows {
-				return tg.New(p.telegramApiToken).SendMessage(tg.SendMessage{
+				return true, tg.New(p.telegramApiToken).SendMessage(tg.SendMessage{
 					Text:   "player not found",
 					ChatID: update.Message.Chat.ID,
 				})
 			}
-			return err
+			return true, err
 		}
 		groupID, err := battleadmin.GroupByChatID(context.Background(), update.Message.Chat.ID)
 		if err != nil {
-			return err
+			return true, err
 		}
 
 		countGroup, err := battleadmin.CountBattlesFromGroup(context.Background(), groupID)
 		if err != nil {
-			return err
+			return true, err
 		}
 		countPlayer, err := battleadmin.CountBattlesFromPlayerAndGroup(context.Background(), groupID, playerID)
 		if err != nil {
-			return err
+			return true, err
 		}
 
 		err = tg.New(p.telegramApiToken).SendMessage(tg.SendMessage{
@@ -149,12 +152,12 @@ func (p polling) handle(update tg.Update) error {
 			ChatID: update.Message.Chat.ID,
 		})
 		if err != nil {
-			return err
+			return true, err
 		}
 
-		return nil
+		return true, nil
 
 	default:
-		return nil
+		return false, nil
 	}
 }
