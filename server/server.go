@@ -195,7 +195,7 @@ func SendPlayerResumeTg(telegramTokenValue string, chatID int64, playersResume [
 		i = end
 
 		err := tg.New(telegramTokenValue).SendMessage(tg.SendMessage{
-			Text:      "```" + toSend + "```",
+			Text:      "```\n" + toSend + "```",
 			ChatID:    chatID,
 			ParseMode: "MarkdownV2",
 		})
