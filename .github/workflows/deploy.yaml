@@ -22,5 +22,5 @@ jobs:
       - name: Deploy
         uses: ross96D/updater-upload-action@v0.0.1
         with:
-          urls: http://${{ secrets.DEPLOY_TOKEN }}@${{ secrets.DEPLOY_IP_PORT }}/update
+          urls: https://${{ secrets.DEPLOY_TOKEN }}@${{ secrets.DEPLOY_URL }}/update
           fields: chwarbot=@out/bin/chwarbot
