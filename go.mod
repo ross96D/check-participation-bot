@@ -4,7 +4,7 @@ go 1.22.0
 
 require (
 	github.com/labstack/echo/v4 v4.12.0
-	github.com/ross96D/battle-log-parser v0.0.5
+	github.com/ross96D/battle-log-parser v0.0.6
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.8.4
 	github.com/tursodatabase/libsql-client-go v0.0.0-20240812094001-348a4e45b535
